@@ -7,6 +7,8 @@ from torch.nn import functional as F
 from torchvision import transforms
 from models import *
 from torchvision.utils import save_image
+from pathlib import Path
+import pandas as pd
 
 
 if __name__ == "__main__":
@@ -29,6 +31,9 @@ if __name__ == "__main__":
     parser.add_argument("--refVGG", type=int, default=1)
     parser.add_argument("--refDN", type=float, default=1)
     parser.add_argument("--gpuID", type=int, default=0)
+    parser.add_argument("--data_dir", type=str, default="")
+    parser.add_argument("--dest_dir", type=str, default="")
+    parser.add_argument("--test_csv_file", type=str, default="")
 
 
     args = parser.parse_args()
@@ -60,11 +65,12 @@ if __name__ == "__main__":
     Image2Tensor = transforms.Compose([
     transforms.ToTensor(),
     ])
-    sampleList = glob.glob('/home/xteam/PaperCode/MM_IJCV/MM/samples/*')
-    result_path = '/home/xteam/PaperCode/MM_IJCV/MM/samples_results/'
+    sampleList = pd.read_csv(args.test_csv_file, header=None)
+    num_samples = len(sampleList)
     with torch.no_grad():
-        for i in range(len(sampleList)):
-            PilImg = Image.open(sampleList[i]).convert('L')
+        for i in range(num_samples):
+            img_path = os.path.join(args.data_dir, sampleList.iloc[i, 0])
+            PilImg = Image.open(str(img_path)).convert('L')
             TensorImg = Image2Tensor(PilImg).unsqueeze(0).to(device)
 
             coNorm = F.normalize(PreTrainModel(TensorImg))      
@@ -72,4 +78,5 @@ if __name__ == "__main__":
             fine_normal = F.normalize(NormalDecoder((TensorImg, normal_feat)))
 
             fine_normal = (fine_normal * 128 + 128).clamp(0, 255) / 255
-            save_image(fine_normal, result_path + sampleList[i].split('/')[-1], nrow=1, normalize=True)
+            dest_path = os.path.join(args.dest_dir, str(sampleList.iloc[i, 0]).replace("crop.jpg", "predict.npy"))
+            save_image(fine_normal, dest_path, nrow=1, normalize=True)
