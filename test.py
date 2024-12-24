@@ -9,7 +9,7 @@ from models import *
 from torchvision.utils import save_image
 from pathlib import Path
 import pandas as pd
-
+import numpy as np 
 
 if __name__ == "__main__":
 
@@ -76,7 +76,10 @@ if __name__ == "__main__":
             coNorm = F.normalize(PreTrainModel(TensorImg))      
             normal_feat = NormalEncoder(coNorm)
             fine_normal = F.normalize(NormalDecoder((TensorImg, normal_feat)))
-
-            fine_normal = (fine_normal * 128 + 128).clamp(0, 255) / 255
+            
+            # fine_normal = (fine_normal * 128 + 128).clamp(0, 255) / 255
+            model_output_perm = fine_normal.permute(0, 2, 3, 1)
+            model_output_np = model_output_perm.cpu().numpy()[0]
             dest_path = os.path.join(args.dest_dir, str(sampleList.iloc[i, 0]).replace("crop.jpg", "predict.npy"))
-            save_image(fine_normal, dest_path, nrow=1, normalize=True)
+            Path(dest_path).parent.mkdir(exist_ok=True, parents=True)
+            np.save(dest_path, model_output_np)
