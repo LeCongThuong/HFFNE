@@ -113,7 +113,7 @@ class NormalEncoder(nn.Module):
     def __init__(self, norm_dim=512):
         super(NormalEncoder, self).__init__()
         # self.vgg = vgg19(pretrained_path=None)
-        self.vgg =  vgg19(pretrained_path = '/home/xteam/PaperCode/data_zoo/vgg19-dcbb9e9d.pth', require_grad = False)
+        self.vgg =  vgg19(pretrained_path = '/mnt/hmi/thuong/HFFNE/ckpts/vgg19-dcbb9e9d.pth', require_grad = False)
         self.feature2vector = nn.Sequential(
             nn.Conv2d(norm_dim, norm_dim, 4, 2, 2), # 8x8
             nn.LeakyReLU(0.2, True),
